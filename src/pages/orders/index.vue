@@ -1,9 +1,15 @@
 <template>
   <div class="page-orders">
-    Orders Page
+    <order-table />
   </div>
 </template>
 
 <script>
-export default {};
+import OrderTable from "@/components/Order/OrderTable";
+
+export default {
+  components: {
+    OrderTable
+  }
+};
 </script>
