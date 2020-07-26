@@ -26,7 +26,7 @@
           {{ props.row.user ? props.row.user.name : "" }}
         </b-table-column>
         <b-table-column field="created_at" label="Order Date">
-          {{ props.row.created_at || "" }}
+          {{ props.row.created_at | date }}
         </b-table-column>
         <b-table-column field="deliveredAmount" label="Delivered Amount">
           {{ getDeliveredAmount(props.row) }}

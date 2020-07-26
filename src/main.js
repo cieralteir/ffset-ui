@@ -1,6 +1,7 @@
 import Vue from "vue";
 import App from "./App.vue";
 
+import "@/filters/filters";
 import "@/plugins/buefy";
 import router from "@/router";
 
