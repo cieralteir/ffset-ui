@@ -1,5 +1,6 @@
 <template>
   <div class="order-table">
+    <order-table-filters @filter="onFilter" />
     <b-table
       :data="orders"
       :loading="loading"
@@ -40,10 +41,15 @@
 
 <script>
 import { OrderService } from "@/services/order.service";
+import OrderTableFilters from "@/components/Order/OrderTableFilters";
 
 export default {
+  components: {
+    OrderTableFilters
+  },
   data: () => ({
     orders: [],
+    filters: {},
     pagination: {
       currentPage: 1,
       perPage: 10,
@@ -59,11 +65,18 @@ export default {
       this.loading = true;
 
       try {
-        const data = await OrderService.all({
+        const params = {
           includes: "items,items.deliveries,user,user.company",
           page: this.pagination.currentPage,
-          per_page: this.pagination.perPage
-        }).then(response => response.data);
+          per_page: this.pagination.perPage,
+          search: this.filters.search || undefined,
+          created_at_start: this.filters.createdDateStart || undefined,
+          created_at_end: this.filters.createdDateEnd || undefined
+        };
+
+        const data = await OrderService.all(params).then(
+          response => response.data
+        );
 
         this.pagination.currentPage = data.current_page;
         this.pagination.perPage = data.per_page;
@@ -103,6 +116,10 @@ export default {
     },
     onPageChange(page) {
       this.pagination.currentPage = page;
+      this.fetchOrders();
+    },
+    onFilter(filters) {
+      this.filters = filters;
       this.fetchOrders();
     }
   }

@@ -20,11 +20,16 @@
           />
         </b-field>
       </div>
+      <div class="column is-12">
+        <b-button type="is-light" @click="filter">SEARCH</b-button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import moment from "moment-timezone";
+
 export default {
   data: () => ({
     filters: {
@@ -37,15 +42,18 @@ export default {
     }
   }),
   watch: {
-    filters: {
-      handler(value) {
-        this.$emit("filter", value);
-      },
-      deep: true
-    },
     "inputs.createdDate"(value) {
-      this.filters.createdDateStart = value[0];
-      this.filters.createdDateEnd = value[1];
+      this.filters.createdDateStart = moment
+        .tz(value[0], "Australia/Melbourne")
+        .format("");
+      this.filters.createdDateEnd = moment
+        .tz(moment(value[1]).endOf("day"), "Australia/Melbourne")
+        .format("");
+    }
+  },
+  methods: {
+    filter() {
+      this.$emit("filter", this.filters);
     }
   }
 };
