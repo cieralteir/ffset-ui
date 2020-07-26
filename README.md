@@ -1,29 +1,19 @@
 # fsset-ui
 
-## Project setup
-```
-npm install
-```
+## Setup
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Please check the official laravel installation guide for server requirements before you start. [Official Documentation](https://laravel.com/docs/5.4/installation#installation)
 
-### Compiles and minifies for production
-```
-npm run build
-```
+Install all the dependencies
 
-### Run your tests
-```
-npm run test
-```
+    npm install
 
-### Lints and fixes files
-```
-npm run lint
-```
+Copy the example env file and make the required configuration changes in the .env file
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+    cp .env.example .env
+
+Start the local development server
+
+    npm run serve
+
+You can now access the server at http://localhost:8080
