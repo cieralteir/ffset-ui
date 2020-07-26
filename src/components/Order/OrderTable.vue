@@ -1,30 +1,37 @@
 <template>
   <div class="order-table">
-    <p>Total Amount: <strong>$198.22</strong></p>
-    <br />
-    <b-table :data="orders">
+    <b-table
+      :data="orders"
+      :loading="loading"
+      paginated
+      backend-pagination
+      :current-page.sync="pagination.currentPage"
+      :per-page="pagination.perPage"
+      :total="pagination.total"
+      @page-change="onPageChange"
+    >
       <template slot-scope="props">
         <b-table-column field="name" label="Order Name">
           {{ props.row.name || "" }}
         </b-table-column>
-        <b-table-column field="customerCompanyName" label="Customer Company">
+        <b-table-column field="user.company.name" label="Customer Company">
           {{
-            props.row.customer && props.row.customer.company
-              ? props.row.customer.company.name
+            props.row.user && props.row.user.company
+              ? props.row.user.company.name
               : ""
           }}
         </b-table-column>
-        <b-table-column field="customerName" label="Customer Name">
-          {{ props.row.customer ? props.row.customer.name : "" }}
+        <b-table-column field="user.name" label="Customer Name">
+          {{ props.row.user ? props.row.user.name : "" }}
         </b-table-column>
-        <b-table-column field="createdAt" label="Order Date">
-          {{ props.row.createdAt || "" }}
+        <b-table-column field="created_at" label="Order Date">
+          {{ props.row.created_at || "" }}
         </b-table-column>
         <b-table-column field="deliveredAmount" label="Delivered Amount">
-          {{ props.row.deliveredAmount ? `$${props.row.deliveredAmount}` : "-" }}
+          {{ getDeliveredAmount(props.row) }}
         </b-table-column>
         <b-table-column field="totalAmount" label="Total Amount">
-          ${{ props.row.totalAmount || "" }}
+          ${{ getTotalAmount(props.row) }}
         </b-table-column>
       </template>
     </b-table>
@@ -32,47 +39,72 @@
 </template>
 
 <script>
+import { OrderService } from "@/services/order.service";
+
 export default {
   data: () => ({
-    // Temporary data
-    orders: [
-      {
-        name: "PO #001-W",
-        customer: {
-          name: "Waylon Beahan V",
-          company: {
-            name: "Comedy Central Inc"
-          }
-        },
-        createdAt: "04-23-20 04:18:00",
-        deliveredAmount: 99.11,
-        totalAmount: 99.11
-      },
-      {
-        name: "PO #002-H",
-        customer: {
-          name: "Dr. Harold Senger",
-          company: {
-            name: "Sony Ericsson"
-          }
-        },
-        createdAt: "04-23-20 04:18:00",
-        deliveredAmount: 0,
-        totalAmount: 99.11
-      },
-      {
-        name: "PO #003-H",
-        customer: {
-          name: "Dr. Harold Senger",
-          company: {
-            name: "Sony Ericsson"
-          }
-        },
-        createdAt: "04-23-20 04:18:00",
-        deliveredAmount: 99.11,
-        totalAmount: 99.11
+    orders: [],
+    pagination: {
+      currentPage: 1,
+      perPage: 10,
+      total: 0
+    },
+    loading: false
+  }),
+  mounted() {
+    this.fetchOrders();
+  },
+  methods: {
+    async fetchOrders() {
+      this.loading = true;
+
+      try {
+        const data = await OrderService.all({
+          includes: "items,items.deliveries,user,user.company",
+          page: this.pagination.currentPage,
+          per_page: this.pagination.perPage
+        }).then(response => response.data);
+
+        this.pagination.currentPage = data.current_page;
+        this.pagination.perPage = data.per_page;
+        this.pagination.total = data.total;
+
+        this.orders = data.data;
+      } catch (err) {
+        console.error(err);
       }
-    ]
-  })
+
+      this.loading = false;
+    },
+    getDeliveredAmount(order) {
+      const items = order.items || [];
+      const amount = items.reduce((acc, item) => {
+        const deliveries = item.deliveries || [];
+        const deliveredQuantity = deliveries.reduce((acc, delivery) => {
+          acc += delivery.quantity;
+          return acc;
+        }, 0);
+
+        acc += deliveredQuantity * item.price_per_unit;
+
+        return acc;
+      }, 0);
+
+      return `$${amount}` || "-";
+    },
+    getTotalAmount(order) {
+      const items = order.items || [];
+      const amount = items.reduce((acc, item) => {
+        acc += item.quantity * item.price_per_unit;
+        return acc;
+      }, 0);
+
+      return `$${amount}`;
+    },
+    onPageChange(page) {
+      this.pagination.currentPage = page;
+      this.fetchOrders();
+    }
+  }
 };
 </script>
